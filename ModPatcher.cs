@@ -1,4 +1,8 @@
+﻿using System;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace VengeModPatcher
 {
@@ -25,15 +29,20 @@ namespace VengeModPatcher
             EnsureFolderExists(ModsFolder);
             EnsureFolderExists(BackupFolder);
 
-            PatchType.Items.AddRange(["Default", "Modded"]);
+            PatchType.Items.AddRange(new object[] { "Default", "Modded" });
             PatchType.SelectedIndex = 0;
             PatchType.SelectedIndexChanged += PatchType_SelectedIndexChanged;
 
             BrowseButton.Click += BrowseButton_Click;
             PatchButton.Click += PatchButton_Click;
-            RefreshButton.Click += RefreshButton_Click;
-            FolderButton.Click += FolderButton_Click;
-            HelpButton.Click += HelpButton_Click;
+            ModsButton.Click += (s, e) => OpenModsFolder();
+
+            // Menu items
+            editModPathMenu.Click += EditModPathMenu_Click;
+            editFirstRunMenu.Click += EditFirstRunMenu_Click;
+            refreshModsMenu.Click += RefreshMenu_Click;
+            helpMenu.Click += HelpMenu_Click;
+            aboutMenu.Click += AboutMenu_Click;
 
             CheckFirstRun();
             LoadAvailableMods();
@@ -45,7 +54,6 @@ namespace VengeModPatcher
             DirBox.ReadOnly = PatchBox.ReadOnly = true;
             DirBox.TabStop = PatchBox.TabStop = false;
         }
-
 
         private static void EnsureFolderExists(string path)
         {
@@ -172,49 +180,6 @@ namespace VengeModPatcher
             Activate();
         }
 
-        private void RefreshButton_Click(object sender, EventArgs e)
-        {
-            LoadAvailableMods();
-
-            if (HasNestedVengeClient(FolderPath.Text))
-            {
-                MessageBox.Show("Folder contains a nested \"Venge Client\" folder.\nMove its contents up to patch correctly.",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void FolderButton_Click(object sender, EventArgs e)
-        {
-            EnsureFolderExists(ModsFolder);
-            System.Diagnostics.Process.Start("explorer.exe", ModsFolder);
-        }
-
-        private void HelpButton_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(this,
-                "1. Select the Venge Client folder in your Documents folder\n" +
-                "2. Choose if you want to factory reset or choose a mod\n" +
-                "3. If you want to reset, select Default and press PATCH\n" +
-                "4. If you want to add a mod, choose Modded\n" +
-                "5. Open the Patcher mod folder with the Folder button\n" +
-                "6. Put all your mods folders inside\n" +
-                "7. Press PATCH and open your game\n\n" +
-                "NOTE: If you want to swap from one mod to another, you can directly swap without resetting.",
-                "Venge Mod Patcher Help", MessageBoxButtons.OK, MessageBoxIcon.Information
-            );
-        }
-
-        private void SetUiEnabled(bool enabled)
-        {
-            PatchButton.Enabled = enabled;
-            RefreshButton.Enabled = enabled;
-            BrowseButton.Enabled = enabled;
-            HelpButton.Enabled = enabled;
-            ModsList.Enabled = enabled && PatchType.SelectedItem?.ToString() == "Modded";
-            PatchType.Enabled = enabled;
-            FolderButton.Enabled = enabled;
-        }
-
         private void PatchButton_Click(object sender, EventArgs e)
         {
             SetUiEnabled(false);
@@ -298,6 +263,119 @@ namespace VengeModPatcher
             {
                 SetUiEnabled(true);
             }
+        }
+
+        private void SetUiEnabled(bool enabled)
+        {
+            PatchButton.Enabled = enabled;
+            BrowseButton.Enabled = enabled;
+            ModsList.Enabled = enabled && PatchType.SelectedItem?.ToString() == "Modded";
+            PatchType.Enabled = enabled;
+            ModsButton.Enabled = enabled;
+        }
+
+        // Menu Item Handlers
+        private void RefreshMenu_Click(object sender, EventArgs e)
+        {
+            LoadAvailableMods();
+            if (HasNestedVengeClient(FolderPath.Text))
+            {
+                MessageBox.Show("Folder contains a nested \"Venge Client\" folder.\nMove its contents up to patch correctly.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void HelpMenu_Click(object sender, EventArgs e)
+        {
+            ShowHelpForm();
+        }
+
+        private void AboutMenu_Click(object sender, EventArgs e)
+        {
+            ShowAboutForm();
+        }
+
+        private void EditModPathMenu_Click(object sender, EventArgs e)
+        {
+            var file = ClientPathFile;
+            EnsureFileExists(file);
+            System.Diagnostics.Process.Start("notepad.exe", file);
+        }
+
+        private void EditFirstRunMenu_Click(object sender, EventArgs e)
+        {
+            var file = FirstRunFile;
+            EnsureFileExists(file);
+            System.Diagnostics.Process.Start("notepad.exe", file);
+        }
+
+        private static void EnsureFileExists(string filePath)
+        {
+            if (!File.Exists(filePath))
+                File.WriteAllText(filePath, "");
+        }
+
+        private void OpenModsFolder()
+        {
+            EnsureFolderExists(ModsFolder);
+            System.Diagnostics.Process.Start("explorer.exe", ModsFolder);
+        }
+
+        private void ShowHelpForm()
+        {
+            var helpForm = new Form
+            {
+                Text = "Help",
+                Size = new System.Drawing.Size(350, 215),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var label = new Label
+            {
+                Text = "1. Select the Venge Client folder in your Documents folder\n" + 
+                       "2. Choose if you want to factory reset or choose a mod\n" +
+                       "3. If you want to reset, select Default and press PATCH\n" +
+                       "4. If you want to add a mod, choose Modded\n" +
+                       "5. Open the Patcher mod folder with the Folder button\n" +
+                       "6. Put all your mods folders inside\n" +
+                       "7. Press PATCH and open your game\n\n" +
+                       "NOTE: If you want to swap from one mod to another, you can directly swap without resetting/backing up.",
+
+                Dock = DockStyle.Fill,
+                AutoSize = false,
+                TextAlign = System.Drawing.ContentAlignment.TopLeft,
+                Padding = new Padding(10)
+            };
+
+            helpForm.Controls.Add(label);
+            helpForm.ShowDialog(this);
+        }
+
+        private void ShowAboutForm()
+        {
+            var aboutForm = new Form
+            {
+                Text = "About",
+                Size = new System.Drawing.Size(100, 100),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var label = new Label
+            {
+                Text = "RVNG Mod Patcher\nVersion 1.1\n© 2025 aftrheavn",
+                Dock = DockStyle.Fill,
+                AutoSize = false,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            };
+
+            aboutForm.Controls.Add(label);
+            aboutForm.ShowDialog(this);
         }
     }
 }
