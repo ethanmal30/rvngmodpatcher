@@ -1,17 +1,17 @@
 # RVNG Mod Patcher
 
-A lightweight Windows tool to patch the **Venge Client** with mods or restore it to the default state.
+A lightweight Windows tool to patch the **Venge Client** with mods or factory reset it.
 
-![ModPatcher](https://i.imgur.com/78aVfRM.png)
+![ModPatcher](https://i.imgur.com/LFViSNJ.png)
 
-[VirusTotal scan (for v1.1)](https://www.virustotal.com/gui/file/987c0db8f3209a1dfe4a8af005de7a601f82933e2550498b1a29e6109016efc8)
+[VirusTotal scan (for v1.2)](https://www.virustotal.com/gui/file/6b54e722375343987e9f38162744800f2796647e15724b36cf034d23b67abb78)
 
 ---
 
 ## Features
 
 - Apply mods easily from a designated `Mods` folder.  
-- Restore the Venge Client folder to default using automatic backups.
+- Restore the Venge Client folder to the default.
 - Simple, user-friendly UI with minimal configuration required.
 
 ---
@@ -26,8 +26,8 @@ A lightweight Windows tool to patch the **Venge Client** with mods or restore it
 ## Usage
 
 1. Launch the patcher.  
-2. On first run, select your **Venge Client** folder (in `Documents`).  
-3. Choose **Default** to restore the original client or **Modded** to apply a mod.  
+2. The mod patcher will automatically select the `Venge Client` folder in `Documents`  
+3. Choose `Unmodded` to restore the original client or `Modded` to apply a mod.  
 4. If applying a mod, put the mod folders inside the `Mods` folder.  
 5. Click **Patch Folder** to apply changes.  
 
